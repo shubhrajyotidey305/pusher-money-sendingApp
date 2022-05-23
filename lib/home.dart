@@ -6,15 +6,17 @@ import 'dart:io';
 import 'package:http/http.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  final String username;
+  // username is received
+  const Home({Key? key, required this.username}) : super(key: key);
 
   @override
   State<Home> createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
-  int _earnings = 0;
-  final List _history = [];
+  int _earnings = 0; // wallet balance
+  final List _history = []; // transaction List
   final messageTextController = TextEditingController();
   String messageText = "0";
   PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
@@ -23,8 +25,8 @@ class _HomeState extends State<Home> {
   Future<void> _initPusher() async {
     try {
       await pusher.init(
-        apiKey: "503c295a8c71896beade",
-        cluster: "mt1",
+        apiKey: "API KEY", // Place Your own Api Key
+        cluster: "CLUSTER", // Place Your own Cluster
         onConnectionStateChange: onConnectionStateChange,
         onAuthorizer: onAuthorizer,
         onSubscriptionSucceeded: onSubscriptionSucceeded,
@@ -47,6 +49,7 @@ class _HomeState extends State<Home> {
             }
             if (kDebugMode) {
               print("Event Received: ${event.data}");
+              print("Event name: ${event.eventName}");
             }
           });
       await pusher.connect();
@@ -77,7 +80,7 @@ class _HomeState extends State<Home> {
 
   void onTriggerEventPressed(String _money) async {
     String json =
-        '{"rupee": "$_money", "sender": "Me", "time": "${DateTime.now().toString().substring(11, 16)}"}';
+        '{"rupee": "$_money", "sender": "${widget.username}", "time": "${DateTime.now().toString().substring(11, 16)}"}';
     await pusher.trigger(PusherEvent(
       channelName: channelName,
       eventName: "client-my_event",
@@ -89,29 +92,14 @@ class _HomeState extends State<Home> {
     "Content-type": "application/json"
   };
 
-// access localhost from the emulator/simulator
+  // access localhost from the emulator/simulator
   String _hostname() {
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:3000';
+      return 'http://10.0.2.2:8000';
     } else {
-      return 'http://localhost:3000';
+      return 'http://localhost:8000';
     }
   }
-
-  // _makePostRequest(String amount) async {
-  //   // set up POST request arguments
-  //
-  //   String json =
-  //       '{"rupee": "$amount", "sender": "Me", "time": "${DateTime.now().toString().substring(11, 16)}"}';
-  //   // make POST request
-  //   Response response =
-  //       await post(Uri.parse(_hostname()), headers: headers, body: json);
-  //   int statusCode = response.statusCode;
-  //   String body = response.body;
-  //   if (kDebugMode) {
-  //     print('Status: $statusCode, $body');
-  //   }
-  // }
 
   dynamic onAuthorizer(
       String channelName, String socketId, dynamic options) async {
@@ -150,9 +138,9 @@ class _HomeState extends State<Home> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  const Text(
-                    'My Name',
-                    style: TextStyle(
+                  Text(
+                    widget.username,
+                    style: const TextStyle(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,
                     ),
@@ -224,6 +212,7 @@ class _HomeState extends State<Home> {
                                   // _makePostRequest(messageText);
                                   if (kDebugMode) {
                                     print(messageText);
+                                    print('Username: ${widget.username}');
                                   }
                                   messageText = "0";
                                   messageTextController.clear();
