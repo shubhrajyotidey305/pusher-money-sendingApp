@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 import 'dart:io';
 import 'package:http/http.dart';
+import 'package:pusher_example_2/auth/secrets.dart';
 
 class Home extends StatefulWidget {
   final String username;
@@ -25,38 +26,42 @@ class _HomeState extends State<Home> {
   Future<void> _initPusher() async {
     try {
       await pusher.init(
-        apiKey: "API KEY", // Place Your own Api Key
-        cluster: "CLUSTER", // Place Your own Cluster
+        apiKey: apikey, // Place Your own Api Key
+        cluster: cluster, // Place Your own Cluster
         onConnectionStateChange: onConnectionStateChange,
         onAuthorizer: onAuthorizer,
         onSubscriptionSucceeded: onSubscriptionSucceeded,
         onSubscriptionError: onSubscriptionError,
+        onEvent: onEvent,
       );
 
       await pusher.subscribe(
-          channelName: channelName,
-          onEvent: (event) {
-            if (mounted) {
-              final data = jsonDecode(event.data);
-              setState(() {
-                _earnings += int.parse(data['rupee']);
-              });
-              _history.add({
-                "rupee": int.parse(data['rupee']),
-                "sender": data['sender'],
-                "time": data['time']
-              });
-            }
-            if (kDebugMode) {
-              print("Event Received: ${event.data}");
-              print("Event name: ${event.eventName}");
-            }
-          });
+        channelName: channelName,
+      );
       await pusher.connect();
     } catch (e) {
       if (kDebugMode) {
         print("Error: $e");
       }
+    }
+  }
+
+  void onEvent(PusherEvent event) {
+    if (mounted) {
+      final data = jsonDecode(event.data);
+      setState(() {
+        _earnings += int.parse(data['rupee']);
+      });
+      _history.add({
+        "rupee": int.parse(data['rupee']),
+        "sender": data['sender'],
+        "time": data['time']
+      });
+    }
+
+    if (kDebugMode) {
+      print("Event Received: ${event.data}");
+      print("Event name: ${event.eventName}");
     }
   }
 
@@ -104,7 +109,8 @@ class _HomeState extends State<Home> {
   dynamic onAuthorizer(
       String channelName, String socketId, dynamic options) async {
     var authUrl = '${_hostname()}/pusher/user-auth';
-    String json = '{"socket_id": "$socketId", "channel_name": "$channelName"}';
+    String json =
+        '{"socket_id": "$socketId", "channel_name": "$channelName", "username" :"${widget.username}"}';
     var result = await post(
       Uri.parse(authUrl),
       headers: headers,
@@ -138,12 +144,23 @@ class _HomeState extends State<Home> {
                   const SizedBox(
                     height: 10.0,
                   ),
-                  Text(
-                    widget.username,
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Hi, ${widget.username}',
+                        style: const TextStyle(
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.logout),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ],
                   ),
                   const SizedBox(
                     height: 30.0,
