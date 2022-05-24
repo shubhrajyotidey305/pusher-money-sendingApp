@@ -1,6 +1,10 @@
 # Pusher Money Sending and Receiving App
 Created by: Ansh Goyal & Shubhrajyoti Dey
 
+## Set up Guide
+- First turn on the server by following that guide.
+- Now, go to home.dart file. Under 'pusher.init' place your own api key and cluster. You can get them by creating an account in 'pusher.com'.
+
 ## Resources
 - Pusher is a hosted API service which makes adding real-time data and functionality to web and mobile applications seamless . Pusher works as a real-time communication layer between the server and the client. It maintains persistent connections at the client using WebSockets, as and when new data is added to your server.
 - [Pusher Channel Flutter Docs](https://pub.dev/packages/pusher_channels_flutter)
